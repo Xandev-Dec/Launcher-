@@ -4,4 +4,7 @@
     <string name="search_hint">Cari aplikasi…</string>
     <string name="app_info">Info aplikasi</string>
     <string name="uninstall">Copot pemasangan</string>
+    <!-- AdMob -->
+    <string name="admob_app_id" translatable="false">ca-app-pub-1137484781700857~5721708223</string>
+    <string name="admob_banner_id" translatable="false">ca-app-pub-1137484781700857/8866746313</string>
 </resources>

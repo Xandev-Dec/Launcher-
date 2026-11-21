@@ -10,6 +10,11 @@ import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
+import android.widget.FrameLayout
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
@@ -21,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: AppAdapter
     private lateinit var search: EditText
     private lateinit var list: RecyclerView
+    private var bannerView: AdView? = null
 
     private val packageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) = loadApps()
@@ -55,9 +61,36 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(packageReceiver, filter)
 
         loadApps()
+        setupAds()
+    }
+
+    private fun setupAds() {
+        MobileAds.initialize(this) {}
+        val container = findViewById<FrameLayout>(R.id.ad_container)
+        container.post {
+            val density = resources.displayMetrics.density
+            val widthDp = (container.width / density).toInt().coerceAtLeast(320)
+            bannerView = AdView(this).apply {
+                adUnitId = getString(R.string.admob_banner_id)
+                setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this@MainActivity, widthDp))
+            }
+            container.addView(bannerView)
+            bannerView?.loadAd(AdRequest.Builder().build())
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        bannerView?.resume()
+    }
+
+    override fun onPause() {
+        bannerView?.pause()
+        super.onPause()
     }
 
     override fun onDestroy() {
+        bannerView?.destroy()
         unregisterReceiver(packageReceiver)
         super.onDestroy()
     }
