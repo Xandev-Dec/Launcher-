@@ -6,6 +6,11 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Isi (mis. v1.0) untuk menerbitkan GitHub Release"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -31,7 +36,7 @@ jobs:
         run: gradle assembleDebug --stacktrace
 
       - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk SimpleLauncher-${{ github.ref_name }}-debug.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk SimpleLauncher-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -41,11 +46,12 @@ jobs:
           if-no-files-found: error
 
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.release_tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            "SimpleLauncher-${{ github.ref_name }}-debug.apk" \
-            --title "Simple Launcher ${{ github.ref_name }} (debug)" \
-            --notes "APK debug pertama. Pasang di HP, lalu tekan Home dan pilih Simple Launcher sebagai launcher default."
+          gh release create "$TAG" SimpleLauncher-debug.apk \
+            --target "${{ github.sha }}" \
+            --title "Simple Launcher $TAG (debug)" \
+            --notes "APK debug. Pasang di HP, lalu tekan Home dan pilih Simple Launcher sebagai launcher default."
