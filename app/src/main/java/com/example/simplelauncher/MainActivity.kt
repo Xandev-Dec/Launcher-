@@ -15,8 +15,10 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -58,7 +60,14 @@ class MainActivity : AppCompatActivity() {
             addAction(Intent.ACTION_PACKAGE_CHANGED)
             addDataScheme("package")
         }
-        registerReceiver(packageReceiver, filter)
+        ContextCompat.registerReceiver(this, packageReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
+
+        // Launcher tidak boleh tertutup oleh tombol Back (kompatibel predictive back)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (search.text.isNotEmpty()) search.setText("")
+            }
+        })
 
         loadApps()
         setupAds()
@@ -103,12 +112,6 @@ class MainActivity : AppCompatActivity() {
             search.clearFocus()
             list.scrollToPosition(0)
         }
-    }
-
-    // Launcher tidak boleh tertutup oleh tombol Back
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (search.text.isNotEmpty()) search.setText("")
     }
 
     private fun loadApps() {
